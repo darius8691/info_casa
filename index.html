@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Info Casa - Guest Concierge</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --green: #4CAF50;
+    --blue: #4A90E2;
+    --orange: #E67E22;
+    --light-bg: #f8f9fa;
+  }
+
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background: #eef2f5;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .card {
+    background: #fff;
+    width: 90%;
+    max-width: 380px;
+    padding: 25px;
+    border-radius: 24px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+
+  h1 {
+    margin-bottom: 25px;
+    font-size: 24px;
+    color: #333;
+  }
+
+  .section {
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 15px;
+    color: #fff;
+    text-align: left;
+    transition: transform 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .section:active {
+    transform: scale(0.97);
+  }
+
+  .section-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 17px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-text {
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-line; /* Riconosce gli invii a capo del database */
+    opacity: 0.95;
+  }
+
+  /* Colori Sezioni */
+  .wifi { background: var(--green); }
+  .info { background: var(--blue); cursor: default; } /* Info non cliccabile */
+  .contact { background: var(--orange); }
+
+  .copy-badge {
+    position: absolute;
+    right: 15px;
+    top: 18px;
+    background: rgba(255,255,255,0.2);
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .contact a {
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    font-weight: 600;
+  }
+
+  .footer-note {
+    font-size: 11px;
+    color: #888;
+    margin-top: 20px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h1 id="nomeCasa">Caricamento...</h1>
+
+  <div class="section wifi" id="wifiBtn">
+    <div class="copy-badge">Copia PWD</div>
+    <div class="section-title">📶 Wi-Fi</div>
+    <div class="section-text" id="wifiText"></div>
+    <div style="font-size: 11px; margin-top: 5px; opacity: 0.8;">Tocca per connetterti o copiare la password</div>
+  </div>
+
+  <div class="section info">
+    <div class="section-title">🏠 Info Casa</div>
+    <div class="section-text" id="infoText"></div>
+  </div>
+
+  <div class="section contact">
+    <div class="section-title">📞 Contatta l'host</div>
+    <a id="callLink"><span>📱</span> <span id="numTel"></span></a>
+    <a id="waLink"><span>💬</span> Scrivi su WhatsApp</a>
+  </div>
+
+  <div class="footer-note">Servizio Guest Welcome • NFC Powered</div>
+</div>
+
+<script>
+const caseData = {
+  "MARE01": {
+    nome: "Casa al Mare",
+    wifi: { ssid: "CasaMare", password: "marepassword123", type: "WPA" },
+    info: "• Check-out entro le ore 10:00\n• Non fumare all'interno\n• Differenziata: secchi in cortile",
+    telefono: "+393331111111"
+  },
+  "MONT01": {
+    nome: "Chalet Montagna",
+    wifi: { ssid: "ChaletGuest", password: "montagnapwd", type: "WPA" },
+    info: "• Check-out ore 11:00\n• Legna per camino nel box\n• Silenzio dopo le 22:00",
+    telefono: "+393332222222"
+  }
+};
+
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+const casa = caseData[id];
+
+if (!casa) {
+  document.body.innerHTML = "<h1>ID Casa non valido</h1>";
+} else {
+  // Popolamento dati
+  document.getElementById("nomeCasa").innerText = casa.nome;
+  document.getElementById("wifiText").innerText = "Rete: " + casa.wifi.ssid;
+  document.getElementById("infoText").innerText = casa.info;
+  document.getElementById("numTel").innerText = casa.telefono;
+  
+  // Link Telefonata e WhatsApp
+  document.getElementById("callLink").href = "tel:" + casa.telefono;
+  document.getElementById("waLink").href = "https://wa.me/" + casa.telefono.replace(/\+/g, "");
+
+  // Gestione Click Wi-Fi (Auto-connect + Copia)
+  document.getElementById("wifiBtn").onclick = () => {
+    // 1. Tenta connessione automatica (Android)
+    const wifiString = `WIFI:T:${casa.wifi.type};S:${casa.wifi.ssid};P:${casa.wifi.password};;`;
+    window.location.href = wifiString;
+
+    // 2. Copia password negli appunti (iOS/Universal)
+    navigator.clipboard.writeText(casa.wifi.password).then(() => {
+      alert("Password copiata negli appunti!\nIncollala nelle impostazioni Wi-Fi.");
+    });
+  };
+}
+</script>
+
+</body>
+</html>
